@@ -1,0 +1,62 @@
+# Vitality (vitality-uk)
+
+Vitality is a United Kingdom health and life insurer, operating as VitalityHealth and VitalityLife under the Vitality umbrella brand and owned by the South African financial services group Discovery Limited. Formed from the 2004 PruHealth joint venture with Prudential and the 2010 acquisition of Standard Life Healthcare, and rebranded to Vitality in 2014, it is the UK's third-largest private medical insurer behind Bupa and AXA, with roughly 1.9 million members and a shared-value model that prices private medical insurance, life cover and protection against member health and activity engagement.
+
+**APIs.json:** [https://raw.githubusercontent.com/api-evangelist/vitality-uk/refs/heads/main/apis.yml](https://raw.githubusercontent.com/api-evangelist/vitality-uk/refs/heads/main/apis.yml)
+
+## Tags
+
+- Insurance
+- United Kingdom
+- Health Insurance
+- Life Insurance
+- Employee Benefits
+- Carrier
+- Policy Administration
+- Underwriting
+- Partner Gated
+
+## Timestamps
+
+- **Created:** 2026-07-25
+- **Modified:** 2026-07-25
+
+## APIs
+
+None listed.
+
+Vitality publishes **no public, self-serve developer portal and no downloadable API definitions**. This is a deliberate, verified empty record rather than a gap in research — see [`review.yml`](review.yml) for the full probe log.
+
+What Vitality does have is a real but undocumented partner gateway:
+
+- `https://apis.vitality.co.uk/` returns **HTTP 200** with the WSO2 API Manager default landing page ("Welcome to APIM"). Response headers expose the origin host `wso2-prd-apigw.tvc.vitality.co.uk` on port 8243 behind an AWS load balancer in eu-west-1. A second edge, `m.apis.vitality.co.uk`, serves the identical page.
+- The WSO2 developer-portal routes (`/devportal`, `/publisher`, `/store`, `/api/am/devportal/v3/apis`) and every spec path tried (`/openapi.json`, `/openapi.yaml`, `/swagger.json`, `/api-docs`) return the WSO2 404 fault document. The only reachable listing, `/services`, shows just the WSO2 sample services (`echo`, `Version`).
+- `POST https://apis.vitality.co.uk/token` with `grant_type=client_credentials` returns **HTTP 401 `invalid_client`** — a live **OAuth2 client-credentials** token endpoint that only accepts partner-issued credentials. No `/.well-known/openid-configuration` is served.
+- `developer.vitality.co.uk`, `developers.vitality.co.uk`, `docs.vitality.co.uk` and `api.vitality.co.uk` do not resolve in DNS. `www.vitality.co.uk` and its `/developers`, `/api`, `/partners` paths sit behind Cloudflare bot protection (HTTP 403).
+
+Vitality publicly described in August 2025 that it had deployed WSO2's open-source API Manager and integration tooling to decouple core services from front-end applications, cutting partner onboarding from six months to a few weeks. That is a **partner-integration programme, not a developer programme** — onboarding ends in issued client credentials, not a signup form.
+
+### What is not exposed
+
+- **Quote, bind, issue, FNOL** — none are publicly documented. All four run through consumer journeys on `vitality.co.uk`, the co-branded Lloyds Bank journey on `partners.vitality.co.uk`, adviser channels, and the member app.
+- **ACORD posture** — *no ACORD reference found*. No mention of ACORD, AL3, ACORD XML, ACORD certification or NGDS on any reachable surface. Expected for a UK retail health-and-protection carrier: UK ACORD adoption is concentrated in the London subscription market (Blueprint Two / Velonetic CR&P, EBOT, ECOT), not in domestic PMI and life distribution.
+- **Webhooks / events** — no event catalogue, no AsyncAPI.
+- **Postman** — a public Postman search for "vitality insurance" returned zero workspaces and zero collections.
+- **GraphQL / gRPC** — `/graphql` returns 404; no published `.proto`.
+- **Open source** — the GitHub organisation [`VitalityUK`](https://github.com/VitalityUK) exists (created 2025-01-16) with zero public repositories.
+
+### Naming cautions
+
+- `api.vitality.io` is a **different, unrelated organisation** and must not be attributed to Vitality UK.
+- Vitality Group / Vitality Global, the international wellness-programme arm of Discovery, is a separate entity from Vitality Health Limited and is out of scope for this record.
+
+## Links
+
+- [Website](https://www.vitality.co.uk/)
+- [Contact](https://www.vitality.co.uk/contact/)
+- [GitHub Organization](https://github.com/VitalityUK)
+- [Review](review.yml)
+
+## Maintainers
+
+- Kin Lane — kin@apievangelist.com

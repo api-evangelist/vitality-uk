@@ -1,0 +1,293 @@
+aid: vitality-uk
+name: Vitality
+review:
+  question: Does Vitality (UK) publish a public, self-serve developer portal or downloadable
+    API definitions for its health, life and protection insurance products?
+  answer: false
+  date: '2026-07-25'
+  reviewer: API Evangelist
+  homeMarket: United Kingdom
+  tier: carrier-life-health
+  gated: true
+findings:
+  summary: |
+    Vitality publishes no public developer portal and no downloadable API
+    definitions. Every first-party developer hostname pattern was probed on
+    2026-07-25. developer.vitality.co.uk, developers.vitality.co.uk,
+    docs.vitality.co.uk and api.vitality.co.uk do not resolve in DNS at all.
+    The corporate site www.vitality.co.uk and its /developers, /api,
+    /developer, /partners and /integrations paths are behind Cloudflare bot
+    protection and return HTTP 403 to non-browser clients, so no developer
+    surface could be confirmed there; nothing in Vitality's public marketing
+    or press coverage points to a developer path on that domain.
+
+    What DOES exist is an undocumented production API gateway.
+    apis.vitality.co.uk returns HTTP 200 with the WSO2 API Manager default
+    landing page ("Welcome to APIM"), and the response headers reveal the
+    origin host wso2-prd-apigw.tvc.vitality.co.uk on port 8243 behind an AWS
+    ALB in eu-west-1. A second gateway, m.apis.vitality.co.uk (same origin
+    IPs, presumably the mobile/member app edge), also returns HTTP 200 with
+    the identical APIM page. A non-production hostname uat.apis.vitality.co.uk
+    resolves in DNS but did not complete a TLS connection.
+
+    That gateway is a gateway, not a portal. The standard WSO2 developer
+    portal routes /devportal, /devportal/apis, /publisher, /store,
+    /api/am/devportal/v3/apis and /api/am/store/v1/apis all return the WSO2
+    404 fault document. /openapi.json, /openapi.yaml, /swagger.json,
+    /api-docs, /graphql, /api, /v1, /health and /status all return 404.
+    The only reachable listing is /services (HTTP 200), which is the default
+    Axis2 services page and exposes nothing but the WSO2 sample services
+    (echo and Version) — no Vitality business services are advertised.
+    Zero OpenAPI, Swagger, AsyncAPI, GraphQL SDL or .proto artifacts were
+    found, so the openapi/ directory has been omitted from this repo.
+
+    The gateway's auth model was confirmed live. POST to
+    https://apis.vitality.co.uk/token with grant_type=client_credentials
+    returns HTTP 401 with
+    {"error_description":"Unsupported Client Authentication Method!",
+    "error":"invalid_client"} — a working WSO2 OAuth2 token endpoint that
+    requires partner-issued client credentials. GET on /token and
+    /oauth2/token returns 405 (method not allowed), confirming both routes
+    are live POST-only token endpoints. Neither
+    /.well-known/openid-configuration nor
+    /.well-known/oauth-authorization-server is served (404 fault).
+
+    Vitality's API modernisation is real but inward- and partner-facing.
+    In August 2025 Vitality publicly described deploying WSO2's open-source
+    API Manager and integration tooling to decouple core services from
+    front-end applications, reporting that partner onboarding fell from six
+    months to a few weeks. That is a partner-integration programme, not a
+    developer programme: onboarding is a commercial process that ends in
+    issued client credentials, not a signup form.
+
+    Adjacent surfaces were checked and are all login walls or marketing.
+    advisers.vitality.co.uk returns HTTP 200 but is a single-page
+    "Workplace Connect" adviser/employer application (Vite SPA, no docs, no
+    API reference). partners.vitality.co.uk returns HTTP 200 but redirects
+    to /lloyds/health-insurance/lite/, a co-branded Lloyds Bank consumer
+    quote journey — a distribution partnership page, not a partner
+    developer surface. adviser.vitality.co.uk is Cloudflare-blocked (403).
+    The GitHub organisation github.com/VitalityUK exists (created
+    2025-01-16, website www.vitality.co.uk) but has zero public
+    repositories. A Postman public search for "vitality insurance" returned
+    zero workspaces and zero collections.
+
+    Homonym caution for downstream data work: api.vitality.io is a
+    different, unrelated organisation and must not be attributed to
+    Vitality UK. Vitality Group / Vitality Global (the international
+    wellness-programme arm of Discovery) is likewise a separate entity from
+    Vitality Health Limited and is out of scope for this record.
+  developerPortal:
+    url: ''
+    confirmed: false
+    classification: none
+    note: |
+      No self-serve developer portal exists. The nearest thing to a public
+      API surface is the bare WSO2 gateway landing page at
+      https://apis.vitality.co.uk/ (HTTP 200), which carries no
+      documentation, no API catalogue and no signup.
+  acordPosture: no ACORD reference found
+  acordNote: |
+    No mention of ACORD, AL3, ACORD XML, ACORD certification or NGDS was
+    found on any reachable Vitality surface or in press coverage of its API
+    programme. This is expected for a UK retail health-and-protection
+    carrier: UK ACORD adoption is concentrated in the London subscription
+    market (Blueprint Two / Velonetic CR&P, EBOT, ECOT) rather than in
+    domestic PMI and life distribution, which move on bespoke partner
+    integrations and intermediary platforms instead.
+  insuranceVerbs:
+    quote:
+      publiclyExposed: false
+      note: No public quote/rating API. Quoting happens through vitality.co.uk
+        consumer journeys, the Lloyds Bank co-branded journey at
+        partners.vitality.co.uk, and adviser/intermediary channels.
+    bind:
+      publiclyExposed: false
+    issue:
+      publiclyExposed: false
+    fnol:
+      publiclyExposed: false
+      note: Health and protection claims are submitted via member/adviser portals
+        and the member app, not a documented API.
+    audience: partner-only
+  authModel:
+    scheme: OAuth2 client-credentials
+    confirmed: true
+    evidence: POST https://apis.vitality.co.uk/token with grant_type=client_credentials
+      returned HTTP 401 invalid_client ("Unsupported Client Authentication Method!"),
+      a live WSO2 API Manager token endpoint requiring partner-issued credentials.
+    openidConfiguration: not served (HTTP 404)
+    oauthAuthorizationServerMetadata: not served (HTTP 404)
+    selfServeSignup: false
+  webhooks:
+    documented: false
+    asyncapi: false
+    note: No event catalogue, webhook documentation or AsyncAPI definition is
+      published. Absence is the finding.
+  postman:
+    publicWorkspace: false
+    note: Postman public search for "vitality insurance" returned 0 workspaces and
+      0 collections on 2026-07-25.
+  graphql:
+    documented: false
+    note: https://apis.vitality.co.uk/graphql returns the WSO2 404 fault document.
+      No GraphQL surface to introspect.
+  grpc:
+    documented: false
+  specsHarvested: 0
+  openapiDirectoryCreated: false
+  transports:
+  - protocol: REST
+    scheme: https
+    baseURL: https://apis.vitality.co.uk
+    documented: false
+    note: Live WSO2 API Manager production gateway (origin wso2-prd-apigw.tvc.vitality.co.uk:8243).
+      HTTP 200 on / with the default APIM landing page. No catalogue, no reference
+      docs, no specs.
+  - protocol: REST
+    scheme: https
+    baseURL: https://m.apis.vitality.co.uk
+    documented: false
+    note: Second WSO2 gateway edge, same origin IP set, identical default APIM page.
+      HTTP 200. POST /token returns 404 here, so the token endpoint appears to be
+      served only on apis.vitality.co.uk.
+  - protocol: SOAP
+    scheme: https
+    documented: false
+    note: /services returns HTTP 200 with the Axis2 deployed-services page, but it
+      lists only the WSO2 sample services (echo, Version). No Vitality business SOAP
+      service is advertised.
+  - protocol: WebSocket
+    scheme: wss
+    documented: false
+  - protocol: GraphQL
+    documented: false
+probes:
+- url: https://developer.vitality.co.uk
+  status: DNS NXDOMAIN (no A record)
+  date: '2026-07-25'
+- url: https://developers.vitality.co.uk
+  status: DNS NXDOMAIN (no A record)
+  date: '2026-07-25'
+- url: https://docs.vitality.co.uk
+  status: DNS NXDOMAIN (no A record)
+  date: '2026-07-25'
+- url: https://api.vitality.co.uk
+  status: DNS NXDOMAIN (no A record)
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+  note: WSO2 API Manager default landing page ("Welcome to APIM"); no docs.
+- url: https://m.apis.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+  note: Identical WSO2 APIM landing page.
+- url: https://uat.apis.vitality.co.uk/
+  status: DNS resolves (54.72.42.152, 34.246.8.248) but TLS connection failed
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/devportal
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/publisher
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/store
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/api/am/devportal/v3/apis
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/api/am/store/v1/apis
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/openapi.json
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/openapi.yaml
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/swagger.json
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/api-docs
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/graphql
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/services
+  status: 200
+  date: '2026-07-25'
+  note: Axis2 deployed-services page; only WSO2 sample services echo and Version.
+- url: https://apis.vitality.co.uk/.well-known/openid-configuration
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/.well-known/oauth-authorization-server
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/token
+  status: 405 on GET; 401 invalid_client on POST grant_type=client_credentials
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/oauth2/token
+  status: 405 on GET
+  date: '2026-07-25'
+- url: https://www.vitality.co.uk/
+  status: 403 (Cloudflare bot protection)
+  date: '2026-07-25'
+- url: https://www.vitality.co.uk/developers/
+  status: 403 (Cloudflare bot protection)
+  date: '2026-07-25'
+- url: https://www.vitality.co.uk/api/
+  status: 403 (Cloudflare bot protection)
+  date: '2026-07-25'
+- url: https://www.vitality.co.uk/partners/
+  status: 403 (Cloudflare bot protection)
+  date: '2026-07-25'
+- url: https://partners.vitality.co.uk
+  status: 200 (redirects to /lloyds/health-insurance/lite/)
+  date: '2026-07-25'
+  note: Co-branded Lloyds Bank consumer quote journey, not a developer surface.
+- url: https://advisers.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+  note: '"Workplace Connect" adviser/employer SPA; login wall, no API docs.'
+- url: https://adviser.vitality.co.uk/
+  status: 403 (Cloudflare bot protection)
+  date: '2026-07-25'
+- url: https://api.github.com/orgs/VitalityUK
+  status: 200
+  date: '2026-07-25'
+  note: Org exists, created 2025-01-16, 0 public repositories.
+sources:
+- url: https://apis.vitality.co.uk/
+  type: APIGateway
+  note: Live WSO2 API Manager production gateway; response headers expose origin host
+    wso2-prd-apigw.tvc.vitality.co.uk on port 8243.
+- url: https://www.vitality.co.uk/
+  type: Website
+  note: Corporate marketing site; Cloudflare-protected, 403 to non-browser clients.
+- url: https://github.com/VitalityUK
+  type: GitHubOrganization
+  note: Confirmed via GitHub API; zero public repositories.
+- url: https://fintech.global/2025/08/20/vitality-accelerates-digital-transformation-with-wso2-api-gateway/
+  type: Press
+  note: Vitality deployed WSO2 open-source API Manager and integration tooling; partner
+    onboarding reduced from six months to a few weeks.
+- url: https://insurtechdigital.com/news/vitality-cuts-partner-onboarding-from-six-months-to-weeks
+  type: Press
+  note: Corroborates the WSO2 API platform and the partner-onboarding improvement.
+- url: https://en.wikipedia.org/wiki/Vitality_Health_and_Life_Insurance
+  type: Reference
+  note: Ownership by Discovery Limited, PruHealth/Standard Life Healthcare lineage,
+    2014 rebrand, UK's third-largest health insurer, ~1.9M members.
+conclusion: |
+  built-stub. Vitality UK is an honest partner-gated record. It has a real,
+  live, publicly resolvable WSO2 API gateway with a working OAuth2
+  client-credentials token endpoint — more API infrastructure than most
+  carriers in this data set expose to the open internet — and yet zero
+  public documentation, zero machine-readable definitions, zero self-serve
+  onboarding and no ACORD posture. The API programme is genuine but its
+  audience is commercial partners onboarded through a sales process. From
+  the outside, the UK's third-largest health insurer is an unlabelled
+  gateway and a 403.
