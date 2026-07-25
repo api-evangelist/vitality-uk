@@ -1,0 +1,63 @@
+generated: '2026-07-25'
+method: derived
+source: live probes on 2026-07-25 plus Vitality's own public statements about its
+  WSO2 API platform
+note: >-
+  Vitality publishes no versioning policy, no deprecation policy, no SLA and no
+  status page for its API platform. What can be evidenced is a real environment
+  ladder in DNS and a public account of the platform migration. Recorded absences
+  are verified absences unless marked otherwise.
+versioning:
+  scheme: unknown
+  current: null
+  docs: null
+  note: WSO2 API Manager publishes each API at /{context}/{version}; no context or
+    version is discoverable anonymously.
+deprecation:
+  policy_url: null
+  sunset_header: unknown
+  note: No deprecation policy is published and no Sunset or Deprecation response
+    header was observed. Partner deprecation is presumably handled through the
+    commercial relationship.
+sla:
+  url: null
+  uptime_target: null
+status_page:
+  url: null
+  probed:
+  - {host: status.vitality.co.uk, result: NXDOMAIN}
+  - {host: trust.vitality.co.uk, result: NXDOMAIN}
+  - {host: security.vitality.co.uk, result: NXDOMAIN}
+  note: No public status page exists for the API platform or the member services.
+environments:
+- name: production
+  host: https://apis.vitality.co.uk
+  reachable: true
+- name: production (mobile/member edge)
+  host: https://m.apis.vitality.co.uk
+  reachable: true
+- name: pre-production
+  host: https://pre.apis.vitality.co.uk
+  reachable: true
+- name: test
+  host: https://test.apis.vitality.co.uk
+  reachable: true
+- name: uat
+  host: https://uat.apis.vitality.co.uk
+  reachable: false
+  note: resolves in DNS (54.72.42.152) but the TLS handshake does not complete
+- name: pre-production (adviser/employer login edges)
+  host: https://pre.ah-login.apis.vitality.co.uk, https://pre.eh-login.apis.vitality.co.uk
+  reachable: unverified
+  note: referenced in the first-party Workplace Connect application configuration
+platform_history:
+- date: '2025-08'
+  event: Vitality publicly described deploying WSO2 open-source API Manager and
+    integration tooling to decouple core services from front-end applications,
+    reporting partner onboarding fell from roughly six months to a few weeks.
+  source: https://fintech.global/2025/08/20/vitality-accelerates-digital-transformation-with-wso2-api-gateway/
+- date: '2025-01-16'
+  event: The GitHub organisation github.com/VitalityUK was created. It still has
+    zero public repositories.
+  source: https://api.github.com/orgs/VitalityUK
+deprecated_operations: []

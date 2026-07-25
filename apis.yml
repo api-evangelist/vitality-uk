@@ -39,14 +39,72 @@ tags:
 created: '2026-07-25'
 modified: '2026-07-25'
 specificationVersion: '0.19'
-apis: []
+apis:
+- name: Vitality Partner API Gateway
+  description: >-
+    Vitality's production API gateway, running WSO2 API Manager at
+    apis.vitality.co.uk (origin wso2-prd-apigw.tvc.vitality.co.uk:8243 behind an
+    AWS load balancer in eu-west-1). The gateway is publicly resolvable and
+    returns HTTP 200, and its OAuth2/OpenID Connect identity layer is fully
+    published anonymously — discovery document, JWKS, authorization, token,
+    userinfo, introspection, revocation, device-authorization and logout
+    endpoints are all live. The business APIs behind it are not: no API
+    catalogue, no reference documentation and no machine-readable contract are
+    exposed, every WSO2 developer-portal route returns the 404 fault document,
+    and the token endpoint rejects anonymous callers with invalid_client.
+    Credentials are issued through commercial partner onboarding rather than a
+    signup form. This entry records a real, verified, undocumented API surface —
+    it is not a claim that Vitality operates a public API programme.
+  humanURL: https://apis.vitality.co.uk/
+  baseURL: https://apis.vitality.co.uk
+  tags:
+  - Insurance
+  - Health Insurance
+  - Partner Gated
+  - OAuth2
+  - OpenID Connect
+  properties:
+  - type: Authentication
+    url: authentication/vitality-uk-authentication.yml
+  - type: OAuthScopes
+    url: scopes/vitality-uk-scopes.yml
+  - type: OpenIDConnect
+    url: well-known/vitality-uk-openid-configuration.json
+  - type: WellKnown
+    url: well-known/vitality-uk-well-known.yml
 common:
+- type: DomainSecurity
+  url: security/vitality-uk-domain-security.yml
 - type: Website
   url: https://www.vitality.co.uk/
 - type: GitHubOrganization
   url: https://github.com/VitalityUK
 - type: Contact
   url: https://www.vitality.co.uk/contact/
+- type: Support
+  url: https://www.vitality.co.uk/support/
+- type: PrivacyPolicy
+  url: https://www.vitality.co.uk/privacy/
+- type: TermsOfService
+  url: https://www.vitality.co.uk/legal/
+- type: Authentication
+  url: authentication/vitality-uk-authentication.yml
+- type: OAuthScopes
+  url: scopes/vitality-uk-scopes.yml
+- type: OpenIDConnect
+  url: well-known/vitality-uk-openid-configuration.json
+- type: WellKnown
+  url: well-known/vitality-uk-well-known.yml
+- type: Conformance
+  url: conformance/vitality-uk-conformance.yml
+- type: ErrorCatalog
+  url: errors/vitality-uk-problem-types.yml
+- type: Conventions
+  url: conventions/vitality-uk-conventions.yml
+- type: Lifecycle
+  url: lifecycle/vitality-uk-lifecycle.yml
+- type: LLMsTxt
+  url: llms/vitality-uk-llms.txt
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com

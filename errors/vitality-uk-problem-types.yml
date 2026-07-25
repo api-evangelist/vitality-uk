@@ -1,0 +1,100 @@
+generated: '2026-07-25'
+method: derived
+source: live responses observed from https://apis.vitality.co.uk on 2026-07-25
+format: vendor
+note: >-
+  Vitality publishes no OpenAPI and no error reference, so this catalogue is
+  derived from error documents the gateway actually returned during probing.
+  Two distinct envelopes are in use: the WSO2 API Manager <am:fault> XML document
+  on gateway routing failures, and JSON envelopes from the WSO2 Identity Server
+  on OAuth routes. Neither is RFC 9457 application/problem+json. Business error
+  codes on the partner APIs behind the gate are not published.
+envelopes:
+- id: wso2-am-fault
+  media_type: application/xml
+  shape: <am:fault xmlns:am="http://wso2.org/apimanager"><am:code/><am:type/><am:message/><am:description/></am:fault>
+  used_on: any unmatched gateway path
+- id: oauth2-error
+  media_type: application/json
+  shape: '{"error": "<code>", "error_description": "<human readable>"}'
+  used_on: /token, /oauth2/token, /oauth2/userinfo, /oauth2/authorize
+  spec: RFC 6749 section 5.2
+- id: wso2-gateway-json
+  media_type: application/json
+  shape: '{"traceId": "<uuid>", "code": <int>, "description": "<text>", "message": "<text>"}'
+  used_on: /oauth2/introspect
+problems:
+- status: 404
+  envelope: wso2-am-fault
+  code: '404'
+  title: Not Found
+  detail: The requested resource is not available.
+  observed_on:
+  - https://apis.vitality.co.uk/openapi.json
+  - https://apis.vitality.co.uk/devportal
+  - https://apis.vitality.co.uk/.well-known/openid-configuration
+  - https://apis.vitality.co.uk/api/identity/oauth2/dcr/v1.1/register
+  remediation: The path is not mapped to a published API on the gateway. Partner
+    API contexts are not discoverable anonymously; obtain the base path from the
+    partner onboarding pack.
+- status: 401
+  envelope: oauth2-error
+  code: invalid_client
+  title: Unsupported Client Authentication Method!
+  detail: >-
+    Returned by POST /token when no partner-issued client credential is presented.
+    The response carries the header "WWW-Authenticate: Basic
+    realm=wso2-prd-idsrv.tvc.vitality.co.uk".
+  observed_on:
+  - https://apis.vitality.co.uk/token
+  remediation: Authenticate with client_secret_basic or client_secret_post using
+    credentials issued during partner onboarding.
+- status: 400
+  envelope: oauth2-error
+  code: invalid_request
+  title: Authorization or Content-Type header is missing
+  observed_on:
+  - https://apis.vitality.co.uk/oauth2/userinfo
+  remediation: Send the bearer access token in the Authorization header.
+- status: 401
+  envelope: wso2-gateway-json
+  code: '401'
+  title: Unauthorized
+  detail: AuthenticationHandler not found.
+  observed_on:
+  - https://apis.vitality.co.uk/oauth2/introspect
+- status: 405
+  envelope: none
+  title: Method Not Allowed
+  detail: Empty body. Returned by GET on POST-only OAuth routes.
+  observed_on:
+  - https://apis.vitality.co.uk/token
+  - https://apis.vitality.co.uk/oauth2/token
+  - https://apis.vitality.co.uk/oauth2/revoke
+- status: 302
+  envelope: redirect
+  title: invalid_request / Invalid authorization request
+  detail: The authorization endpoint redirects malformed requests to
+    /authenticationendpoint/oauth2_error.do?oauthErrorCode=invalid_request&oauthErrorMsg=Invalid+authorization+request
+  observed_on:
+  - https://apis.vitality.co.uk/authorize
+- status: 400
+  envelope: graphql
+  title: SSC API key is required
+  detail: '{"errors":[{"message":"SSC API key is required. Pass with ''sc_apikey''
+    query string or HTTP header."}]}'
+  observed_on:
+  - https://cd.wc.vitality.co.uk/sitecore/api/graph/edge
+  note: Sitecore Experience Edge content-delivery GraphQL surface used by
+    Vitality's own Workplace Connect application.
+- status: 403
+  envelope: html
+  title: Cloudflare bot protection
+  detail: The corporate website returns a Cloudflare interstitial to every
+    non-browser client, including /.well-known/ paths and robots.txt.
+  observed_on:
+  - https://www.vitality.co.uk/
+  - https://adviser.vitality.co.uk/
+tracing:
+  note: Every error response carries correlation identifiers — see
+    conventions/vitality-uk-conventions.yml.

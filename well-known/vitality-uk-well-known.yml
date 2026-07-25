@@ -1,0 +1,80 @@
+generated: '2026-07-25'
+method: searched
+source: live probes of every reachable Vitality host on 2026-07-25
+note: >-
+  Vitality serves no document at the RFC 8615 root path /.well-known/ on its
+  gateway — every root probe returns the WSO2 API Manager 404 fault document.
+  It DOES serve a complete OpenID Connect discovery document and a live JWKS,
+  but at the WSO2 Identity Server paths /oauth2/token/.well-known/... and
+  /oauth2/oidcdiscovery/.well-known/... rather than the host root. A previous
+  round recorded "no openid-configuration" because only the root path was
+  probed; that finding is superseded by this file.
+hosts:
+- host: https://apis.vitality.co.uk
+  role: production partner API gateway (WSO2 API Manager)
+  documents:
+  - path: /oauth2/token/.well-known/openid-configuration
+    status: 200
+    file: vitality-uk-openid-configuration.json
+    spec: OpenID Connect Discovery 1.0
+  - path: /oauth2/oidcdiscovery/.well-known/openid-configuration
+    status: 200
+    file: vitality-uk-openid-configuration.json
+    note: identical document to the /oauth2/token/ path; this is the path the
+      first-party Workplace Connect adviser application is configured with
+  - path: /oauth2/jwks
+    status: 200
+    file: vitality-uk-jwks.json
+    spec: RFC 7517 JSON Web Key Set
+    note: one RS256 signing key published
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+    spec: RFC 8414
+  - path: /.well-known/oauth-protected-resource
+    status: 404
+    spec: RFC 9728
+  - path: /.well-known/security.txt
+    status: 404
+    spec: RFC 9116
+  - path: /.well-known/api-catalog
+    status: 404
+    spec: RFC 9727
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /.well-known/webfinger
+    status: 404
+- host: https://m.apis.vitality.co.uk
+  role: mobile / member application gateway edge
+  documents:
+  - path: /oauth2/token/.well-known/openid-configuration
+    status: 200
+    note: same issuer (https://apis.vitality.co.uk/oauth2/token) as the primary edge
+  - path: /.well-known/openid-configuration
+    status: 404
+- host: https://ah-login.apis.vitality.co.uk
+  role: adviser hub login edge
+  documents:
+  - path: /oauth2/oidcdiscovery/.well-known/openid-configuration
+    status: 200
+    note: same issuer as the primary edge
+- host: https://eh-login.apis.vitality.co.uk
+  role: employer hub login edge
+  documents:
+  - path: /oauth2/oidcdiscovery/.well-known/openid-configuration
+    status: 200
+    note: same issuer as the primary edge
+- host: https://www.vitality.co.uk
+  role: corporate website
+  documents:
+  - path: /.well-known/security.txt
+    status: 403
+    note: Cloudflare bot protection returns 403 to all non-browser clients; the
+      absence of a security.txt could not be positively confirmed on this host
+  - path: /.well-known/openid-configuration
+    status: 403
+    note: Cloudflare bot protection
+  - path: /llms.txt
+    status: 403
+    note: Cloudflare bot protection

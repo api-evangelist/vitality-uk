@@ -1,0 +1,115 @@
+generated: '2026-07-25'
+method: derived
+source: live request/response observation of https://apis.vitality.co.uk and the
+  first-party Workplace Connect application bundle on 2026-07-25
+note: >-
+  Vitality documents no API conventions publicly. Everything below was observed
+  on the wire from the production WSO2 API Manager gateway or read from
+  Vitality's own first-party client configuration. Anything that could not be
+  observed anonymously is recorded as unknown rather than guessed.
+authentication:
+  style: OAuth 2.0 bearer tokens issued by the gateway's WSO2 Identity Server
+  token_endpoint: https://apis.vitality.co.uk/oauth2/token
+  aliased_path: https://apis.vitality.co.uk/token
+  client_auth: [client_secret_basic, client_secret_post]
+  first_party_client_flow: authorization_code with scope "openid" (observed in the
+    Workplace Connect adviser SPA, which resolves its OIDC configuration from
+    /oauth2/oidcdiscovery)
+  detail: authentication/vitality-uk-authentication.yml
+idempotency:
+  supported: unknown
+  note: No idempotency key header is documented and no write operation is publicly
+    reachable, so idempotency support could not be established. No Idempotency
+    pointer is emitted.
+pagination:
+  style: unknown
+  note: No public collection endpoint exists to observe.
+versioning:
+  scheme: unknown
+  observed: The gateway exposes no version in any anonymously reachable path. WSO2
+    API Manager convention is a per-API context path with a version segment
+    (/{context}/{version}), which is consistent with the 404s returned for /v1.
+  environments:
+  - host: apis.vitality.co.uk
+    role: production
+    status: 200
+  - host: m.apis.vitality.co.uk
+    role: mobile / member edge (production)
+    status: 200
+  - host: ah-login.apis.vitality.co.uk
+    role: adviser hub login edge (production)
+    status: 401 at root, OIDC discovery 200
+  - host: eh-login.apis.vitality.co.uk
+    role: employer hub login edge (production)
+    status: 401 at root, OIDC discovery 200
+  - host: pre.apis.vitality.co.uk
+    role: pre-production
+    status: 200
+  - host: test.apis.vitality.co.uk
+    role: test
+    status: 200
+  - host: uat.apis.vitality.co.uk
+    role: UAT
+    status: DNS resolves, TLS handshake fails
+tracing:
+  request_id_headers:
+  - name: x-wso2-traceid
+    example_shape: uuid
+    where: OAuth/identity responses
+  - name: activityid
+    example_shape: uuid
+    where: gateway responses
+  - name: traceparent
+    spec: W3C Trace Context
+    where: gateway responses — the platform propagates W3C trace context end to end
+  - name: tracestate
+    spec: W3C Trace Context
+  - name: x-amzn-trace-id
+    where: AWS Application Load Balancer in front of the gateway
+  - name: x-dynatrace / x-dynatrace-requeststate / server-timing
+    where: Dynatrace OneAgent instrumentation is enabled across the estate
+error_envelope:
+  primary: WSO2 <am:fault> XML on gateway routing failures
+  oauth: RFC 6749 JSON {error, error_description}
+  identity_gateway: '{traceId, code, description, message}'
+  rfc9457: false
+  detail: errors/vitality-uk-problem-types.yml
+rate_limiting:
+  signalled: false
+  note: No X-RateLimit-*, RateLimit-* or Retry-After header was returned on any
+    anonymous request. WSO2 API Manager subscription throttling tiers are
+    configured per-API in the publisher and are presumably communicated in the
+    partner onboarding pack, but nothing is published.
+transport_security:
+  hsts: max-age=31536000; includeSubDomains; preload
+  negotiated_tls: TLSv1.2 (x-https-protocol on the gateway); TLSv1.3 on
+    www.vitality.co.uk
+  security_headers:
+  - x-content-type-options: nosniff
+  - x-xss-protection: 1; mode=block
+  - x-frame-options: DENY (identity routes)
+  - cache-control: no-store, no-cache
+  infrastructure: AWS Application Load Balancer (eu-west-1) fronting origin host
+    wso2-prd-apigw.tvc.vitality.co.uk:8243; AWSALB / AWSALBCORS stickiness cookies
+    are set on every response
+surfaces:
+- kind: REST gateway
+  url: https://apis.vitality.co.uk
+  documented: false
+- kind: SOAP (Axis2)
+  url: https://apis.vitality.co.uk/services
+  documented: false
+  note: 200, but lists only the WSO2 sample services (echo, Version)
+- kind: GraphQL (Sitecore Experience Edge)
+  url: https://cd.wc.vitality.co.uk/sitecore/api/graph/edge
+  documented: false
+  gated: true
+  note: Introspection requires an sc_apikey; this is the content-delivery surface
+    behind the Workplace Connect adviser application, not an insurance API.
+cross_links:
+  authentication: authentication/vitality-uk-authentication.yml
+  scopes: scopes/vitality-uk-scopes.yml
+  errors: errors/vitality-uk-problem-types.yml
+  lifecycle: lifecycle/vitality-uk-lifecycle.yml
+  well_known: well-known/vitality-uk-well-known.yml
+  conformance: conformance/vitality-uk-conformance.yml

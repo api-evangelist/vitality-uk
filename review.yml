@@ -111,14 +111,29 @@ findings:
         and the member app, not a documented API.
     audience: partner-only
   authModel:
-    scheme: OAuth2 client-credentials
+    scheme: OAuth2 / OpenID Connect (WSO2 Identity Server behind the APIM gateway)
     confirmed: true
     evidence: POST https://apis.vitality.co.uk/token with grant_type=client_credentials
       returned HTTP 401 invalid_client ("Unsupported Client Authentication Method!"),
       a live WSO2 API Manager token endpoint requiring partner-issued credentials.
-    openidConfiguration: not served (HTTP 404)
-    oauthAuthorizationServerMetadata: not served (HTTP 404)
+    openidConfiguration: SERVED — https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+      and https://apis.vitality.co.uk/oauth2/oidcdiscovery/.well-known/openid-configuration
+      both return HTTP 200 with a complete OpenID Connect discovery document
+      (issuer https://apis.vitality.co.uk/oauth2/token). Confirmed 2026-07-25 during
+      the enrichment round. This SUPERSEDES the earlier "not served (HTTP 404)"
+      finding, which probed only the RFC 8615 host root /.well-known/openid-configuration
+      — that path does 404, but the WSO2 Identity Server paths do not.
+    oauthAuthorizationServerMetadata: not served (HTTP 404 at /.well-known/oauth-authorization-server)
+    jwks: SERVED — https://apis.vitality.co.uk/oauth2/jwks returns HTTP 200 with one
+      RS256 signing key.
+    grantTypes: authorization_code, client_credentials, refresh_token, password,
+      device_code, jwt-bearer, saml2-bearer, iwa:ntlm, spoofToken, account_switch
+    pkce: S256 and plain
+    dynamicClientRegistration: advertised in discovery
+      (/api/identity/oauth2/dcr/v1.1/register) but NOT reachable through the public
+      gateway (HTTP 404) — registration is a commercial process.
     selfServeSignup: false
+    detail: authentication/vitality-uk-authentication.yml
   webhooks:
     documented: false
     asyncapi: false
@@ -130,8 +145,15 @@ findings:
       0 collections on 2026-07-25.
   graphql:
     documented: false
+    endpointFound: true
     note: https://apis.vitality.co.uk/graphql returns the WSO2 404 fault document.
-      No GraphQL surface to introspect.
+      However, the first-party Workplace Connect adviser application
+      (advisers.vitality.co.uk) is configured against a live Sitecore Experience
+      Edge GraphQL endpoint at https://cd.wc.vitality.co.uk/sitecore/api/graph/edge,
+      confirmed 2026-07-25. Introspection is gated — the endpoint answers
+      {"errors":[{"message":"SSC API key is required. Pass with 'sc_apikey' query
+      string or HTTP header."}]} (HTTP 400). It is a CMS content-delivery surface,
+      not an insurance API, and no SDL could be captured.
   grpc:
     documented: false
   specsHarvested: 0
@@ -259,6 +281,107 @@ probes:
   status: 200
   date: '2026-07-25'
   note: Org exists, created 2025-01-16, 0 public repositories.
+- url: https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+  status: 200
+  date: '2026-07-25'
+  note: Complete OpenID Connect discovery document. Saved verbatim to
+    well-known/vitality-uk-openid-configuration.json.
+- url: https://apis.vitality.co.uk/oauth2/oidcdiscovery/.well-known/openid-configuration
+  status: 200
+  date: '2026-07-25'
+  note: Identical discovery document; this is the path Vitality's own Workplace
+    Connect application is configured with.
+- url: https://apis.vitality.co.uk/oauth2/jwks
+  status: 200
+  date: '2026-07-25'
+  note: One RS256 signing key. Saved verbatim to well-known/vitality-uk-jwks.json.
+- url: https://apis.vitality.co.uk/oauth2/authorize
+  status: 302
+  date: '2026-07-25'
+  note: Live authorization endpoint; redirects invalid requests to
+    /authenticationendpoint/oauth2_error.do.
+- url: https://apis.vitality.co.uk/oauth2/userinfo
+  status: 400
+  date: '2026-07-25'
+  note: '{"error_description":"Authorization or Content-Type header is missing","error":"invalid_request"}'
+- url: https://apis.vitality.co.uk/oauth2/introspect
+  status: 401
+  date: '2026-07-25'
+  note: '{"traceId":"...","code":401,"description":"AuthenticationHandler not found.","message":"Unauthorized"}'
+- url: https://apis.vitality.co.uk/oauth2/revoke
+  status: 405
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/oidc/checksession
+  status: 200
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/oidc/logout
+  status: 302
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/api/identity/oauth2/dcr/v1.1/register
+  status: 404
+  date: '2026-07-25'
+  note: Dynamic client registration is advertised in discovery but not exposed
+    through the public gateway.
+- url: https://apis.vitality.co.uk/.well-known/oauth-protected-resource
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/.well-known/api-catalog
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/.well-known/security.txt
+  status: 404
+  date: '2026-07-25'
+- url: https://apis.vitality.co.uk/llms.txt
+  status: 404
+  date: '2026-07-25'
+- url: https://m.apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+  status: 200
+  date: '2026-07-25'
+- url: https://ah-login.apis.vitality.co.uk/oauth2/oidcdiscovery/.well-known/openid-configuration
+  status: 200
+  date: '2026-07-25'
+  note: Adviser hub login edge; same issuer.
+- url: https://eh-login.apis.vitality.co.uk/oauth2/oidcdiscovery/.well-known/openid-configuration
+  status: 200
+  date: '2026-07-25'
+  note: Employer hub login edge; same issuer.
+- url: https://test.apis.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+- url: https://pre.apis.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+- url: https://cd.wc.vitality.co.uk/sitecore/api/graph/edge
+  status: 400
+  date: '2026-07-25'
+  note: Live Sitecore Experience Edge GraphQL endpoint; introspection gated on an
+    sc_apikey.
+- url: https://members.vitality.co.uk/
+  status: 200
+  date: '2026-07-25'
+  note: Member application shell (Dynatrace-instrumented); login wall, no docs.
+- url: https://employerhub.vitality.co.uk/
+  status: 301
+  date: '2026-07-25'
+- url: https://status.vitality.co.uk
+  status: DNS NXDOMAIN
+  date: '2026-07-25'
+- url: https://trust.vitality.co.uk
+  status: DNS NXDOMAIN
+  date: '2026-07-25'
+- url: https://security.vitality.co.uk
+  status: DNS NXDOMAIN
+  date: '2026-07-25'
+- url: https://www.vitality.co.uk/.well-known/security.txt
+  status: 403
+  date: '2026-07-25'
+  note: Cloudflare bot protection; absence could not be positively confirmed.
+- url: https://registry.npmjs.org (search "vitality insurance")
+  status: 200
+  date: '2026-07-25'
+  note: No first-party Vitality UK client library. The @vitality-ds/* npm scope is
+    a design system published from github.com/genie-engineering and is NOT
+    Vitality UK.
 sources:
 - url: https://apis.vitality.co.uk/
   type: APIGateway

@@ -1,0 +1,28 @@
+generated: '2026-07-25'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: www.vitality.co.uk
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov 19 23:59:59 2026 GMT
+  hsts: null
+- host: apis.vitality.co.uk
+  https: true
+  tls_version: TLSv1.2
+  cert_expires: Sep 16 23:59:59 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+domains:
+- domain: vitality.co.uk
+  dnssec: false
+  caa:
+  - 0 issue "letsencrypt.org"
+  - 0 issue "pki.goog"
+  - 0 issue "amazon.com"
+  - 0 issue "amazonaws.com"
+  - 0 issue "amazontrust.com"
+  - 0 issue "awstrust.com"
+  spf: true
+  dmarc: true
+  dmarc_policy: quarantine

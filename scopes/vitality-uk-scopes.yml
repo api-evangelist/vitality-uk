@@ -1,0 +1,52 @@
+generated: '2026-07-25'
+method: searched
+source: https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+docs: null
+note: >-
+  Only the OpenID Connect standard scopes are advertised in Vitality's public
+  discovery document. Any business scopes on the partner APIs behind the
+  apis.vitality.co.uk gateway (WSO2 API Manager scopes are bound per-API in the
+  publisher) are not published anonymously and cannot be enumerated without
+  partner-issued credentials. The list below is exactly what the provider
+  publishes — it is not a complete picture of the partner authorization surface.
+schemes:
+- name: WSO2 API Manager OAuth2
+  source: https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+  issuer: https://apis.vitality.co.uk/oauth2/token
+  flows:
+  - flow: authorizationCode
+    authorizationUrl: https://apis.vitality.co.uk/oauth2/authorize
+    tokenUrl: https://apis.vitality.co.uk/oauth2/token
+  - flow: clientCredentials
+    tokenUrl: https://apis.vitality.co.uk/oauth2/token
+scopes:
+- scope: openid
+  description: Request an OpenID Connect ID token alongside the access token. This
+    is the scope Vitality's own first-party Workplace Connect adviser application
+    requests.
+  flows: [authorizationCode]
+  sources: [https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration]
+- scope: profile
+  description: Standard OIDC profile claims (name, given_name, family_name,
+    preferred_username, picture, locale, updated_at and related).
+  flows: [authorizationCode]
+  sources: [https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration]
+- scope: email
+  description: Standard OIDC email and email_verified claims.
+  flows: [authorizationCode]
+  sources: [https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration]
+- scope: phone
+  description: Standard OIDC phone_number and phone_number_verified claims.
+  flows: [authorizationCode]
+  sources: [https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration]
+- scope: address
+  description: Standard OIDC address claim (formatted, street_address, locality,
+    region, postal_code, country).
+  flows: [authorizationCode]
+  sources: [https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration]
+not_published:
+  business_scopes: true
+  note: No member, policy, quote, claim or benefit scope is advertised publicly.
+    Vitality-specific identity claims (memberID, entityID, partyID, roles, groups)
+    appear in claims_supported, implying member-level authorization exists behind
+    the gate, but the scopes that gate it are partner-issued.

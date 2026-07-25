@@ -1,0 +1,125 @@
+generated: '2026-07-25'
+method: searched
+source: https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+docs: null
+note: >-
+  Vitality publishes no OpenAPI, so this profile is not derived from a spec — it
+  is read verbatim from the live OpenID Connect discovery document served by the
+  WSO2 Identity Server behind the apis.vitality.co.uk gateway, corroborated by
+  live probes of the token, authorization, userinfo, revocation and JWKS
+  endpoints and by the OAuth configuration embedded in Vitality's own
+  first-party Workplace Connect adviser application.
+summary:
+  types:
+  - oauth2
+  - openIdConnect
+  api_key_in: []
+  oauth2_flows:
+  - authorizationCode
+  - clientCredentials
+  - password
+  - deviceCode
+  - refreshToken
+  - jwtBearer
+  - saml2Bearer
+  self_serve_signup: false
+  audience: commercial partners and first-party applications only
+schemes:
+- name: WSO2 API Manager OAuth2
+  type: oauth2
+  issuer: https://apis.vitality.co.uk/oauth2/token
+  source: https://apis.vitality.co.uk/oauth2/token/.well-known/openid-configuration
+  endpoints:
+    authorization: https://apis.vitality.co.uk/oauth2/authorize
+    token: https://apis.vitality.co.uk/oauth2/token
+    userinfo: https://apis.vitality.co.uk/oauth2/userinfo
+    jwks: https://apis.vitality.co.uk/oauth2/jwks
+    introspection: https://wso2-prd-idsrv.tvc.vitality.co.uk:9443/oauth2/introspect
+    revocation: https://wso2-prd-idsrv.tvc.vitality.co.uk:9443/oauth2/revoke
+    device_authorization: https://wso2-prd-idsrv.tvc.vitality.co.uk:9443/oauth2/device_authorize
+    registration: https://apis.vitality.co.uk/api/identity/oauth2/dcr/v1.1/register
+    end_session: https://apis.vitality.co.uk/oidc/logout
+    check_session_iframe: https://apis.vitality.co.uk/oidc/checksession
+  grant_types:
+  - authorization_code
+  - client_credentials
+  - refresh_token
+  - password
+  - urn:ietf:params:oauth:grant-type:device_code
+  - urn:ietf:params:oauth:grant-type:jwt-bearer
+  - urn:ietf:params:oauth:grant-type:saml2-bearer
+  - iwa:ntlm
+  - spoofToken
+  - account_switch
+  response_types:
+  - code
+  - token
+  - id_token
+  - code id_token
+  - code token
+  - id_token token
+  - code id_token token
+  - device
+  - none
+  response_modes: [query, fragment, form_post]
+  token_endpoint_auth_methods: [client_secret_basic, client_secret_post]
+  pkce:
+    supported: true
+    code_challenge_methods: [S256, plain]
+  id_token_signing_alg: [RS256]
+  userinfo_signing_alg: [RS256]
+  request_object_signing_alg: [RS256, RS384, RS512, PS256, none]
+  subject_types: [public]
+  session_management:
+    backchannel_logout_supported: true
+    backchannel_logout_session_supported: true
+    check_session_iframe: true
+  claims:
+    standard: [sub, name, given_name, family_name, middle_name, nickname,
+      preferred_username, profile, picture, website, gender, birthdate, zoneinfo,
+      locale, updated_at, email, email_verified, phone_number,
+      phone_number_verified, address, formatted, street_address, locality, region,
+      postal_code, country, acr, iss]
+    vitality_specific: [memberID, entityID, entityId, entity_id, partyID, partyId,
+      source, registered, roles, groups, upn, username]
+    note: memberID / entityID / partyID are Vitality's own identity claims and are
+      the clearest public signal of how the carrier keys members and parties
+      across policy administration.
+- name: Bearer token (gateway)
+  type: http
+  scheme: bearer
+  bearer_format: JWT
+  note: Access tokens issued by the token endpoint above are presented to the
+    apis.vitality.co.uk gateway as HTTP bearer tokens. No published API operation
+    could be exercised anonymously to confirm the header name beyond the standard
+    Authorization header.
+verified:
+- probe: POST https://apis.vitality.co.uk/token (grant_type=client_credentials)
+  status: 401
+  body: '{"error_description":"Unsupported Client Authentication Method!","error":"invalid_client"}'
+  meaning: live token endpoint; rejects anonymous callers, requires partner-issued
+    client credentials
+- probe: GET https://apis.vitality.co.uk/authorize
+  status: 302
+  meaning: live authorization endpoint; redirects to the WSO2 authentication
+    endpoint OAuth error page for an invalid request
+- probe: GET https://apis.vitality.co.uk/oauth2/userinfo
+  status: 400
+  body: '{"error_description":"Authorization or Content-Type header is missing","error":"invalid_request"}'
+- probe: GET https://apis.vitality.co.uk/oauth2/jwks
+  status: 200
+  meaning: 1 RSA RS256 signing key published
+- probe: GET https://apis.vitality.co.uk/oauth2/introspect
+  status: 401
+  body: '{"code":401,"description":"AuthenticationHandler not found.","message":"Unauthorized"}'
+- probe: POST https://apis.vitality.co.uk/api/identity/oauth2/dcr/v1.1/register
+  status: 404
+  meaning: the dynamic client registration endpoint advertised in discovery is NOT
+    exposed through the public gateway — client registration is a commercial
+    onboarding process, not self-serve
+onboarding:
+  self_serve: false
+  process: Client credentials are issued through Vitality's commercial partner
+    onboarding process. There is no developer signup form, no API key console and
+    no public dynamic client registration.
+  evidence: https://fintech.global/2025/08/20/vitality-accelerates-digital-transformation-with-wso2-api-gateway/
