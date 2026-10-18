@@ -87,7 +87,6 @@ apis:
   tags:
   - Insurance
   - Health Insurance
-  - Partner Gated
   - Authentication
   - OpenID Connect
   tags_raw:
